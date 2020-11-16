@@ -30,16 +30,20 @@ $app->get('/api/juego/{hash}', function (Request $request, Response $response) {
         $stmt = $db->query($sql);
         $categorias = $stmt->fetchAll(PDO::FETCH_OBJ);
 
+        // contador de categorias para alternar colores en ui
+        $count = 0;
         // Por cada categoria, trae las preguntas correspondientes
         foreach ($categorias as $categoria) {
             $categoria_id = $categoria->id;
 
-            $sql = "SELECT id, texto, puntaje, respondida FROM pregunta WHERE categoria_id = $categoria_id ";
+            $sql = "SELECT id, puntaje, respondida FROM pregunta WHERE categoria_id = $categoria_id ";
 
             $stmt = $db->query($sql);
             $preguntas = $stmt->fetchAll(PDO::FETCH_OBJ);
 
             $categoria->preguntas = $preguntas;
+            $categoria->count = $count;
+            $count++;
         }
 
         $juego->categorias = $categorias;
