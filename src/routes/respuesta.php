@@ -8,7 +8,7 @@ $app->put('/api/respuesta/{id}', function (Request $request, Response $response)
         // Obtiene la pregunta de la base de datos
         $pregunta_id = $request->getAttribute('id');
 
-        $sql = "SELECT p.id, p.puntaje, c.juego_id FROM pregunta p LEFT JOIN categoria c ON p.categoria_id = c.id WHERE p.id = '$pregunta_id'";
+        $sql = "SELECT p.id, p.puntaje, c.juego_id, j.resta_incorrectas FROM pregunta p LEFT JOIN categoria c ON p.categoria_id = c.id LEFT JOIN juego j ON c.juego_id = j.id WHERE p.id = '$pregunta_id'";
 
         $db = new db();
         $db = $db->connect();
@@ -25,6 +25,7 @@ $app->put('/api/respuesta/{id}', function (Request $request, Response $response)
 
         $juego_id = $preguntas[0]->juego_id;
         $puntaje_pregunta = $preguntas[0]->puntaje;
+        $resta_incorrectas = $preguntas[0]->resta_incorrectas;
 
         // Verifica que haya indicado el equipo que respondió y que sea correcto
         $equipo_id = $request->getParam('equipo_id');
@@ -60,6 +61,10 @@ $app->put('/api/respuesta/{id}', function (Request $request, Response $response)
         if ($respuesta_correcta) {
             // Obtiene el puntaje del equipo
             $sql="UPDATE equipo SET puntaje = puntaje + $puntaje_pregunta WHERE id = $equipo_id";
+            $stmt = $db->prepare($sql);
+            $stmt->execute();
+        } elseif ($resta_incorrectas) {
+            $sql="UPDATE equipo SET puntaje = puntaje - $puntaje_pregunta WHERE id = $equipo_id";
             $stmt = $db->prepare($sql);
             $stmt->execute();
         }
