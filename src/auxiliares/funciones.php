@@ -52,3 +52,29 @@ function dataResponse(Response $response, object $data, Int $status)
           return [];
       }
   };
+
+  function verificarEquipoEnJuego(Int $equipo_id, Int $juego_id)
+  {
+
+      // Si no se envía el id del equipo o del juego devuelve false
+      if (!$equipo_id || !$juego_id) {
+          return false;
+      }
+
+      // Hace la consulta para ver si el equipo existe y pertenece al juego
+      $sql = "SELECT id FROM equipo WHERE id = $equipo_id AND juego_id = $juego_id";
+
+      try {
+          $db = new db();
+          $db = $db->connect();
+          $stmt = $db->query($sql);
+          $equipos = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+          if (count($equipos) == 0) {
+              return false;
+          }
+          return true;
+      } catch (PDOException $e) {
+          echo '{"error":{"text": '.$e->getMessage().'}}';
+      }
+  }
