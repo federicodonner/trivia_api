@@ -27,19 +27,6 @@ $app->put('/api/respuesta/{id}', function (Request $request, Response $response)
         $puntaje_pregunta = $preguntas[0]->puntaje;
         $resta_incorrectas = $preguntas[0]->resta_incorrectas;
 
-        // Verifica que haya indicado el equipo que respondió y que sea correcto
-        $equipo_id = $request->getParam('equipo_id');
-
-        if (!$equipo_id) {
-            $db = null;
-            return messageResponse($response, 'Equipo no especificado.', 400);
-        }
-
-        if (!verificarEquipoEnJuego($equipo_id, $juego_id)) {
-            $db = null;
-            return messageResponse($response, 'El equipo especificado no corresponde al juego en curso.', 404);
-        }
-
         // Verifica que haya indicado si respondió correctamente
         $respuesta_correcta = $request->getParam('respuesta_correcta');
 
@@ -60,14 +47,50 @@ $app->put('/api/respuesta/{id}', function (Request $request, Response $response)
         // Si fue respondida correctamente, le suma los puntos al equipo
         if ($respuesta_correcta) {
             // Obtiene el puntaje del equipo
-            $sql="UPDATE equipo SET puntaje = puntaje + $puntaje_pregunta WHERE id = $equipo_id";
+            $sql="UPDATE equipo SET puntaje = puntaje + $puntaje_pregunta WHERE juego_id = $juego_id AND activo = 1";
             $stmt = $db->prepare($sql);
             $stmt->execute();
         } elseif ($resta_incorrectas) {
-            $sql="UPDATE equipo SET puntaje = puntaje - $puntaje_pregunta WHERE id = $equipo_id";
+            $sql="UPDATE equipo SET puntaje = puntaje - $puntaje_pregunta WHERE juego_id = $juego_id AND activo = 1";
             $stmt = $db->prepare($sql);
             $stmt->execute();
         }
+
+        // Actualizar cuál es el equipo activo
+        $sql = "SELECT * FROM equipo WHERE juego_id = $juego_id ORDER BY id";
+        $stmt = $db->query($sql);
+        $equipos = $stmt->fetchAll(PDO::FETCH_OBJ);
+
+        $nuevo_equipo_activo = 0;
+
+        // Verifica si el último equipo es el activo
+        if ($equipos[count($equipos)-1]->activo == 1) {
+            // Si es, marca al primer equipo como siquiente activo
+            $nuevo_equipo_activo = $equipos[0]->id;
+        } else {
+            // Si no, recorre todos los equipos hasta encontrar al activo
+            $siguiente_equipo_activo = false;
+            foreach ($equipos as $equipo) {
+                // Si el anterior lo marcó como activo, selecciona al siguiente
+                if ($siquiente_equipo_activo) {
+                    $nuevo_equipo_activo = $equipo->id;
+                    $siquiente_equipo_activo = false;
+                    // print_r($equipo);
+                }
+                // Si encuentra un equipo activo, lo marca para seleccionar al siguiente
+                if ($equipo->activo == 1) {
+                    $siquiente_equipo_activo = true;
+                }
+            }
+        }
+
+        $sql="UPDATE equipo SET activo = 0 WHERE juego_id = $juego_id";
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
+
+        $sql="UPDATE equipo SET activo = 1 WHERE id = $nuevo_equipo_activo";
+        $stmt = $db->prepare($sql);
+        $stmt->execute();
 
         $db = null;
         return messageResponse($response, 'Respuesta registrada.', 200);
