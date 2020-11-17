@@ -36,7 +36,7 @@ $app->get('/api/juegohash/{hash}', function (Request $request, Response $respons
         foreach ($categorias as $categoria) {
             $categoria_id = $categoria->id;
 
-            $sql = "SELECT id, puntaje, respondida FROM pregunta WHERE categoria_id = $categoria_id ";
+            $sql = "SELECT id, puntaje, respondida, hash FROM pregunta WHERE categoria_id = $categoria_id ";
 
             $stmt = $db->query($sql);
             $preguntas = $stmt->fetchAll(PDO::FETCH_OBJ);
