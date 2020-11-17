@@ -7,7 +7,7 @@ $app->get('/api/preguntahash/{hash}', function (Request $request, Response $resp
     try {
         // Obtiene la pregunta de la base de datos
         $pregunta_hash = $request->getAttribute('hash');
-        $sql = "SELECT p.*, c.id AS categoria_id, c.nombre AS categoria_nombre, c.juego_id FROM pregunta p LEFT JOIN categoria c ON p.categoria_id = c.id WHERE p.hash = '$pregunta_hash'";
+        $sql = "SELECT p.*, c.id AS categoria_id, c.nombre AS categoria_nombre, c.juego_id, j.hash AS juego_hash FROM pregunta p LEFT JOIN categoria c ON p.categoria_id = c.id LEFT JOIN juego j ON c.juego_id = j.id WHERE p.hash = '$pregunta_hash'";
 
         $db = new db();
         $db = $db->connect();
