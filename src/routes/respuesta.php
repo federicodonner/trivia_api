@@ -3,12 +3,12 @@ use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
 // Indica si la pregunta fur respondida correctamente por el equipo o no
-$app->put('/api/respuesta/{id}', function (Request $request, Response $response) {
+$app->put('/api/respuesta/{hash}', function (Request $request, Response $response) {
     try {
         // Obtiene la pregunta de la base de datos
-        $pregunta_id = $request->getAttribute('id');
+        $pregunta_hash = $request->getAttribute('hash');
 
-        $sql = "SELECT p.id, p.puntaje, c.juego_id, j.resta_incorrectas FROM pregunta p LEFT JOIN categoria c ON p.categoria_id = c.id LEFT JOIN juego j ON c.juego_id = j.id WHERE p.id = '$pregunta_id'";
+        $sql = "SELECT p.id, p.puntaje, c.juego_id, j.resta_incorrectas FROM pregunta p LEFT JOIN categoria c ON p.categoria_id = c.id LEFT JOIN juego j ON c.juego_id = j.id WHERE p.hash = '$pregunta_hash'";
 
         $db = new db();
         $db = $db->connect();
@@ -36,12 +36,12 @@ $app->put('/api/respuesta/{id}', function (Request $request, Response $response)
         }
 
         // Actualiza la pregunta marcándola como respondida
-        $sql="UPDATE pregunta SET respondida = 1, correcta = :respuesta_correcta WHERE id = :pregunta_id";
+        $sql="UPDATE pregunta SET respondida = 1, correcta = :respuesta_correcta WHERE hash = :pregunta_hash";
 
         $stmt = $db->prepare($sql);
 
         $stmt->bindParam(':respuesta_correcta', $respuesta_correcta);
-        $stmt->bindParam(':pregunta_id', $pregunta_id);
+        $stmt->bindParam(':pregunta_hash', $pregunta_hash);
         $stmt->execute();
 
         // Si fue respondida correctamente, le suma los puntos al equipo

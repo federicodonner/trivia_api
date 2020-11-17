@@ -3,7 +3,7 @@ use \Psr\Http\Message\ServerRequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
 // Devuelve los detalles del juego en base al hash
-$app->get('/api/juego/{hash}', function (Request $request, Response $response) {
+$app->get('/api/juegohash/{hash}', function (Request $request, Response $response) {
     try {
         // Obtiene el hash del request
         $juego_hash = $request->getAttribute('hash');
